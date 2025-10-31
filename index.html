@@ -5,42 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Safari Cost Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Heroicons for icons (optional, lightweight) -->
+    <script src="https://unpkg.com/heroicons@2.0.18/24/outline/index.js"></script>
+    <style>
+        /* Custom subtle pattern for safari vibe */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-green-400 to-blue-500 min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+<body class="bg-gradient-to-br from-amber-100 via-orange-50 to-emerald-100 min-h-screen flex items-center justify-center p-4 relative">
+    <div class="max-w-lg w-full bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+        <!-- Header -->
+        <div class="p-6 text-center bg-gradient-to-r from-emerald-600/10 to-amber-500/10 border-b border-emerald-200/50">
+            <div class="mx-auto w-12 h-12 text-emerald-600 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-full h-full">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296m0 0A3.745 3.745 0 0 1 12 3a3.745 3.745 0 0 1 3.296 1.043 3.745 3.745 0 0 1 3.296 1.043z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Safari Cost Calculator</h1>
+            <p class="text-gray-600">Plan your Kenya adventure with ease</p>
+        </div>
+        
+        <!-- Form -->
         <div class="p-6">
-            <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Safari Cost Calculator</h1>
-            <p class="text-center text-gray-600 mb-8">Get a quick estimate for your Kenya adventure!</p>
-            
-            <!-- User Input Form -->
-            <form id="safariForm" class="space-y-4">
-                <div>
-                    <label for="travelers" class="block text-sm font-medium text-gray-700 mb-1">Number of Travelers</label>
-                    <input type="number" id="travelers" min="1" max="10" value="2" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <form id="safariForm" class="space-y-5">
+                <div class="space-y-2">
+                    <label for="travelers" class="block text-sm font-semibold text-gray-700">Number of Travelers</label>
+                    <input type="number" id="travelers" min="1" max="10" value="2" required 
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md" 
+                           aria-describedby="travelers-help">
+                    <p id="travelers-help" class="text-xs text-gray-500">Up to 10 travelers</p>
                 </div>
                 
-                <div>
-                    <label for="days" class="block text-sm font-medium text-gray-700 mb-1">Number of Days</label>
-                    <input type="number" id="days" min="1" max="30" value="5" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div class="space-y-2">
+                    <label for="days" class="block text-sm font-semibold text-gray-700">Number of Days</label>
+                    <input type="number" id="days" min="1" max="30" value="5" required 
+                           class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md" 
+                           aria-describedby="days-help">
+                    <p id="days-help" class="text-xs text-gray-500">1-30 days trip</p>
                 </div>
                 
-                <div>
-                    <label for="budgetLevel" class="block text-sm font-medium text-gray-700 mb-1">Budget Level</label>
-                    <select id="budgetLevel" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select...</option>
+                <div class="space-y-2">
+                    <label for="budgetLevel" class="block text-sm font-semibold text-gray-700">Budget Level</label>
+                    <select id="budgetLevel" required 
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md bg-white">
+                        <option value="">Choose your style...</option>
                         <option value="budget">Budget ($100/person/day)</option>
                         <option value="mid-range">Mid-Range ($250/person/day)</option>
                         <option value="luxury">Luxury ($500/person/day)</option>
                     </select>
                 </div>
                 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">Calculate Costs</button>
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button type="submit" id="calcBtn" 
+                            class="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-lg hover:shadow-xl transform hover:scale-[1.02] text-lg">
+                        Calculate Costs
+                    </button>
+                    <button type="button" id="resetBtn" 
+                            class="px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-sm hover:shadow-md">
+                        Reset
+                    </button>
+                </div>
             </form>
         </div>
         
-        <!-- Results section (hidden initially) -->
-        <div id="results" class="p-6 bg-gray-50 hidden">
-            <!-- Results will be populated by JS -->
+        <!-- Results -->
+        <div id="results" class="p-6 bg-gradient-to-b from-orange-50 to-emerald-50 border-t border-gray-200 hidden transition-all duration-500 ease-in-out transform scale-95">
+            <!-- Populated by JS -->
         </div>
     </div>
     <script src="script.js"></script>

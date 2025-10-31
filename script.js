@@ -5,79 +5,104 @@ const rates = {
     'luxury': { total: 500, breakdown: { accom: 350, parks: 100, transport: 50 } }
 };
 
-// Breakdown category labels
+// Breakdown category labels & colors
 const categories = {
-    accom: 'Accommodation & Meals',
-    parks: 'Park Fees',
-    transport: 'Transport'
+    accom: { name: 'Accommodation & Meals', color: 'from-green-500 to-emerald-600' },
+    parks: { name: 'Park Fees', color: 'from-blue-500 to-cyan-600' },
+    transport: { name: 'Transport', color: 'from-amber-500 to-orange-600' }
 };
 
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('safariForm');
     const resultsDiv = document.getElementById('results');
+    const resetBtn = document.getElementById('resetBtn');
+    const calcBtn = document.getElementById('calcBtn');
 
-    form.addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent page reload
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-        // Get input values
         const travelers = parseInt(document.getElementById('travelers').value);
         const days = parseInt(document.getElementById('days').value);
         const budgetLevel = document.getElementById('budgetLevel').value;
 
-        if (!budgetLevel) {
-            alert('Please select a budget level!');
+        if (!budgetLevel || travelers < 1 || days < 1) {
+            alert('Please fill all fields correctly!');
             return;
         }
 
-        // Get rates for selected level
+        // Show loading state
+        calcBtn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>Calculating...';
+        calcBtn.disabled = true;
+
+        // Simulate quick "processing" (remove in prod if instant)
+        await new Promise(resolve => setTimeout(resolve, 800));
+
         const selectedRates = rates[budgetLevel];
-
-        // Calculations
         const totalCost = selectedRates.total * days * travelers;
-        const accomCost = selectedRates.breakdown.accom * days * travelers;
-        const parksCost = selectedRates.breakdown.parks * days * travelers;
-        const transportCost = selectedRates.breakdown.transport * days * travelers;
+        const breakdown = {};
+        for (let key in selectedRates.breakdown) {
+            breakdown[key] = selectedRates.breakdown[key] * days * travelers;
+        }
 
-        // Generate results HTML with bar chart
+        // Generate enhanced results HTML
+        let breakdownHTML = '';
+        Object.keys(breakdown).forEach(key => {
+            const cat = categories[key];
+            const percentage = Math.round((breakdown[key] / totalCost) * 100);
+            breakdownHTML += `
+                <div class="flex items-center justify-between p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 mb-3">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">${cat.name}</p>
+                    </div>
+                    <div class="flex-1 mx-4">
+                        <div class="bg-gray-200 rounded-full h-4 overflow-hidden">
+                            <div class="h-4 rounded-full bg-gradient-to-r ${cat.color} transition-all duration-700" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                    <div class="w-24 text-right">
+                        <p class="font-bold text-gray-900">$${breakdown[key].toLocaleString()}</p>
+                        <p class="text-sm text-gray-500">${percentage}%</p>
+                    </div>
+                </div>
+            `;
+        });
+
         const resultsHTML = `
-            <h2 class="text-3xl font-bold text-center mb-6 text-green-700">$${totalCost.toLocaleString()}</h2>
-            <p class="text-center text-gray-600 mb-6">Total Estimated Cost</p>
+            <div class="text-center mb-6 animate-fade-in">
+                <h2 class="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-2">$${totalCost.toLocaleString()}</h2>
+                <p class="text-lg text-gray-600">Total Estimated Cost</p>
+            </div>
             
-            <h3 class="text-lg font-semibold mb-4 text-gray-800">Cost Breakdown</h3>
-            <div class="space-y-4 mb-6">
-                <div class="flex items-center justify-between">
-                    <span class="w-1/2">${categories.accom}</span>
-                    <div class="w-1/2 bg-gray-200 rounded-full h-2">
-                        <div class="bg-green-500 h-2 rounded-full" style="width: ${(accomCost / totalCost) * 100}%"></div>
-                    </div>
-                    <span class="w-1/4 text-right">$${accomCost.toLocaleString()}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="w-1/2">${categories.parks}</span>
-                    <div class="w-1/2 bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full" style="width: ${(parksCost / totalCost) * 100}%"></div>
-                    </div>
-                    <span class="w-1/4 text-right">$${parksCost.toLocaleString()}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="w-1/2">${categories.transport}</span>
-                    <div class="w-1/2 bg-gray-200 rounded-full h-2">
-                        <div class="bg-yellow-500 h-2 rounded-full" style="width: ${(transportCost / totalCost) * 100}%"></div>
-                    </div>
-                    <span class="w-1/4 text-right">$${transportCost.toLocaleString()}</span>
-                </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Cost Breakdown</h3>
+            <div class="grid gap-3">${breakdownHTML}</div>
+            
+            <div class="text-center mt-6 pt-4 border-t border-gray-200">
+                <p class="text-sm text-gray-500 italic mb-3">This is a rough estimate. Actual costs may vary based on season, group size, and specifics.</p>
+                <button type="button" id="hideResults" class="text-emerald-600 hover:text-emerald-800 underline text-sm font-medium transition-colors">Hide Breakdown</button>
             </div>
-            <hr class="my-4 border-gray-300">
-            <div class="flex justify-between font-bold text-xl text-gray-800">
-                <span>Grand Total</span>
-                <span>$${totalCost.toLocaleString()}</span>
-            </div>
-            <p class="text-sm text-gray-500 text-center mt-6 italic">This is a rough estimate. Actual costs may vary based on season, group size, and specifics.</p>
         `;
 
-        // Update and show results
         resultsDiv.innerHTML = resultsHTML;
         resultsDiv.classList.remove('hidden');
+        resultsDiv.classList.add('scale-100'); // Trigger animation
         resultsDiv.scrollIntoView({ behavior: 'smooth' });
+
+        // Reset button state
+        calcBtn.innerHTML = 'Calculate Costs';
+        calcBtn.disabled = false;
+
+        // Hide results handler
+        document.getElementById('hideResults').addEventListener('click', function() {
+            resultsDiv.classList.add('hidden', 'scale-95');
+        });
+    });
+
+    // Reset
+    resetBtn.addEventListener('click', function() {
+        form.reset();
+        document.getElementById('travelers').value = 2;
+        document.getElementById('days').value = 5;
+        resultsDiv.classList.add('hidden', 'scale-95');
+        form.scrollIntoView({ behavior: 'smooth' });
     });
 });
