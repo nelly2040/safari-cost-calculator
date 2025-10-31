@@ -38,29 +38,41 @@ document.addEventListener('DOMContentLoaded', function() {
         const parksCost = selectedRates.breakdown.parks * days * travelers;
         const transportCost = selectedRates.breakdown.transport * days * travelers;
 
-        // Generate results HTML
+        // Generate results HTML with bar chart
         const resultsHTML = `
-            <h2 class="text-2xl font-bold text-center mb-4 text-green-700">Estimated Total: $${totalCost.toLocaleString()}</h2>
-            <div class="space-y-3">
-                <div class="flex justify-between">
-                    <span>${categories.accom}:</span>
-                    <span>$${accomCost.toLocaleString()}</span>
+            <h2 class="text-3xl font-bold text-center mb-6 text-green-700">$${totalCost.toLocaleString()}</h2>
+            <p class="text-center text-gray-600 mb-6">Total Estimated Cost</p>
+            
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Cost Breakdown</h3>
+            <div class="space-y-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <span class="w-1/2">${categories.accom}</span>
+                    <div class="w-1/2 bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: ${(accomCost / totalCost) * 100}%"></div>
+                    </div>
+                    <span class="w-1/4 text-right">$${accomCost.toLocaleString()}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span>${categories.parks}:</span>
-                    <span>$${parksCost.toLocaleString()}</span>
+                <div class="flex items-center justify-between">
+                    <span class="w-1/2">${categories.parks}</span>
+                    <div class="w-1/2 bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: ${(parksCost / totalCost) * 100}%"></div>
+                    </div>
+                    <span class="w-1/4 text-right">$${parksCost.toLocaleString()}</span>
                 </div>
-                <div class="flex justify-between">
-                    <span>${categories.transport}:</span>
-                    <span>$${transportCost.toLocaleString()}</span>
-                </div>
-                <hr class="my-2 border-gray-300">
-                <div class="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
-                    <span>$${totalCost.toLocaleString()}</span>
+                <div class="flex items-center justify-between">
+                    <span class="w-1/2">${categories.transport}</span>
+                    <div class="w-1/2 bg-gray-200 rounded-full h-2">
+                        <div class="bg-yellow-500 h-2 rounded-full" style="width: ${(transportCost / totalCost) * 100}%"></div>
+                    </div>
+                    <span class="w-1/4 text-right">$${transportCost.toLocaleString()}</span>
                 </div>
             </div>
-            <p class="text-sm text-gray-500 text-center mt-4 italic">This is an estimate. Actual costs may vary based on season, group size, and specifics.</p>
+            <hr class="my-4 border-gray-300">
+            <div class="flex justify-between font-bold text-xl text-gray-800">
+                <span>Grand Total</span>
+                <span>$${totalCost.toLocaleString()}</span>
+            </div>
+            <p class="text-sm text-gray-500 text-center mt-6 italic">This is a rough estimate. Actual costs may vary based on season, group size, and specifics.</p>
         `;
 
         // Update and show results
