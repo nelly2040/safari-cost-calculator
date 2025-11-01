@@ -19,6 +19,32 @@
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             z-index: -1;
         }
+        /* Custom radio styling */
+        input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            margin-right: 8px;
+            cursor: pointer;
+            position: relative;
+        }
+        input[type="radio"]:checked {
+            background-color: #059669;
+            border-color: #059669;
+        }
+        input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-amber-100 via-orange-50 to-emerald-100 min-h-screen flex items-center justify-center p-4 relative">
@@ -37,6 +63,22 @@
         <!-- Form -->
         <div class="p-6">
             <form id="safariForm" class="space-y-5">
+                <!-- Visitor Type Radio Buttons -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Visitor Type</label>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center p-3 bg-gray-50 rounded-xl">
+                        <label class="flex items-center cursor-pointer text-sm font-medium">
+                            <input type="radio" name="visitorType" value="international" checked required class="mr-2">
+                            International Tourist
+                        </label>
+                        <label class="flex items-center cursor-pointer text-sm font-medium">
+                            <input type="radio" name="visitorType" value="resident" class="mr-2">
+                            Local Resident (Kenyan/East African)
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-500">Locals get lower park fees via KWS citizen rates</p>
+                </div>
+
                 <div class="space-y-2">
                     <label for="travelers" class="block text-sm font-semibold text-gray-700">Number of Travelers</label>
                     <input type="number" id="travelers" min="1" max="10" value="2" required 
@@ -58,9 +100,9 @@
                     <select id="budgetLevel" required 
                             class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md bg-white">
                         <option value="">Choose your style...</option>
-                        <option value="budget">Budget ($100/person/day)</option>
-                        <option value="mid-range">Mid-Range ($250/person/day)</option>
-                        <option value="luxury">Luxury ($500/person/day)</option>
+                        <option value="budget">Budget - Basic camps, shared transport</option>
+                        <option value="mid-range">Mid-Range - Comfort lodges, private 4x4</option>
+                        <option value="luxury">Luxury - High-end lodges, gourmet & extras</option>
                     </select>
                 </div>
 
