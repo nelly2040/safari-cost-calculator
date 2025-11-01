@@ -63,6 +63,18 @@
                         <option value="luxury">Luxury ($500/person/day)</option>
                     </select>
                 </div>
+
+                <div class="space-y-2">
+                    <label for="season" class="block text-sm font-semibold text-gray-700">Safari Season</label>
+                    <select id="season" required 
+                            class="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md bg-white">
+                        <option value="">Select season...</option>
+                        <option value="high">High Season (Peak: Jul-Oct, Dec-Jan) - Great wildlife, dry, standard prices (×1.0)</option>
+                        <option value="shoulder">Shoulder Season (Nov, Feb-Mar) - Fewer crowds, 10% discount (×0.9)</option>
+                        <option value="low">Low Season (Apr-Jun: long rains) - Lowest prices, 30% discount (×0.7)</option>
+                    </select>
+                    <p class="text-xs text-gray-500">Adjusts costs based on Kenya's safari seasons</p>
+                </div>
                 
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
                     <button type="submit" id="calcBtn" 

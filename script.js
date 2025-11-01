@@ -5,6 +5,13 @@ const rates = {
     'luxury': { total: 500, breakdown: { accom: 350, parks: 100, transport: 50 } }
 };
 
+// Seasonal multipliers
+const seasons = {
+    'high': { multiplier: 1.0, label: 'High Season (×1.0)' },
+    'shoulder': { multiplier: 0.9, label: 'Shoulder Season (×0.9, 10% off)' },
+    'low': { multiplier: 0.7, label: 'Low Season (×0.7, 30% off)' }
+};
+
 // Breakdown category labels & colors
 const categories = {
     accom: { name: 'Accommodation & Meals', color: 'from-green-500 to-emerald-600' },
@@ -24,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const travelers = parseInt(document.getElementById('travelers').value);
         const days = parseInt(document.getElementById('days').value);
         const budgetLevel = document.getElementById('budgetLevel').value;
+        const season = document.getElementById('season').value || 'high'; // Default to high
 
         if (!budgetLevel || travelers < 1 || days < 1) {
             alert('Please fill all fields correctly!');
@@ -34,14 +42,25 @@ document.addEventListener('DOMContentLoaded', function() {
         calcBtn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>Calculating...';
         calcBtn.disabled = true;
 
-        // Simulate quick "processing" (remove in prod if instant)
+        // Simulate quick "processing"
         await new Promise(resolve => setTimeout(resolve, 800));
 
         const selectedRates = rates[budgetLevel];
-        const totalCost = selectedRates.total * days * travelers;
-        const breakdown = {};
+        const seasonMultiplier = seasons[season].multiplier;
+
+        // Base calculations (before multiplier)
+        const baseTotal = selectedRates.total * days * travelers;
+        const baseBreakdown = {};
         for (let key in selectedRates.breakdown) {
-            breakdown[key] = selectedRates.breakdown[key] * days * travelers;
+            baseBreakdown[key] = selectedRates.breakdown[key] * days * travelers;
+        }
+
+        // Apply multiplier to total and breakdown
+        const totalCost = baseTotal * seasonMultiplier;
+        const adjustment = baseTotal * (1 - seasonMultiplier); // Savings amount
+        const breakdown = {};
+        for (let key in baseBreakdown) {
+            breakdown[key] = baseBreakdown[key] * seasonMultiplier;
         }
 
         // Generate enhanced results HTML
@@ -67,10 +86,13 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         });
 
+        const seasonLabel = seasons[season].label;
         const resultsHTML = `
             <div class="text-center mb-6 animate-fade-in">
                 <h2 class="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-2">$${totalCost.toLocaleString()}</h2>
                 <p class="text-lg text-gray-600">Total Estimated Cost</p>
+                <p class="text-sm text-emerald-600 font-medium mt-1">${seasonLabel}</p>
+                ${adjustment > 0 ? `<p class="text-sm text-green-600">Season Adjustment: -$${adjustment.toLocaleString()} (Savings!)</p>` : ''}
             </div>
             
             <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Cost Breakdown</h3>
@@ -102,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
         form.reset();
         document.getElementById('travelers').value = 2;
         document.getElementById('days').value = 5;
+        document.getElementById('season').value = 'high'; // Default season
         resultsDiv.classList.add('hidden', 'scale-95');
         form.scrollIntoView({ behavior: 'smooth' });
     });
