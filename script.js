@@ -1,8 +1,15 @@
-// Hardcoded daily rates per person (business rules)
-const rates = {
-    'budget': { total: 100, breakdown: { accom: 60, parks: 30, transport: 10 } },
-    'mid-range': { total: 250, breakdown: { accom: 150, parks: 70, transport: 30 } },
-    'luxury': { total: 500, breakdown: { accom: 350, parks: 100, transport: 50 } }
+// International Tourist Rates (USD, breakdowns from spec)
+const internationalRates = {
+    'budget': { total: 140, breakdown: { accom: 70, parks: 50, transport: 20 } },
+    'mid-range': { total: 300, breakdown: { accom: 180, parks: 70, transport: 50 } },
+    'luxury': { total: 570, breakdown: { accom: 400, parks: 100, transport: 70 } } // Sum of breakdown
+};
+
+// Local Resident Rates (USD, breakdowns from spec)
+const residentRates = {
+    'budget': { total: 70, breakdown: { accom: 40, parks: 15, transport: 15 } },
+    'mid-range': { total: 130, breakdown: { accom: 75, parks: 20, transport: 35 } },
+    'luxury': { total: 250, breakdown: { accom: 170, parks: 25, transport: 55 } } // Sum of breakdown
 };
 
 // Seasonal multipliers
@@ -15,7 +22,7 @@ const seasons = {
 // Breakdown category labels & colors
 const categories = {
     accom: { name: 'Accommodation & Meals', color: 'from-green-500 to-emerald-600' },
-    parks: { name: 'Park Fees', color: 'from-blue-500 to-cyan-600' },
+    parks: { name: 'Park Fees (KWS)', color: 'from-blue-500 to-cyan-600' },
     transport: { name: 'Transport', color: 'from-amber-500 to-orange-600' }
 };
 
@@ -28,10 +35,11 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        const visitorType = document.querySelector('input[name="visitorType"]:checked').value;
         const travelers = parseInt(document.getElementById('travelers').value);
         const days = parseInt(document.getElementById('days').value);
         const budgetLevel = document.getElementById('budgetLevel').value;
-        const season = document.getElementById('season').value || 'high'; // Default to high
+        const season = document.getElementById('season').value || 'high';
 
         if (!budgetLevel || travelers < 1 || days < 1) {
             alert('Please fill all fields correctly!');
@@ -45,14 +53,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Simulate quick "processing"
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        const selectedRates = rates[budgetLevel];
+        // Select rates based on visitor type
+        const selectedRates = visitorType === 'resident' ? residentRates : internationalRates;
         const seasonMultiplier = seasons[season].multiplier;
+        const visitorLabel = visitorType === 'resident' ? 'Local Resident Rates' : 'International Tourist Rates';
 
         // Base calculations (before multiplier)
-        const baseTotal = selectedRates.total * days * travelers;
+        const baseTotal = selectedRates[budgetLevel].total * days * travelers;
         const baseBreakdown = {};
-        for (let key in selectedRates.breakdown) {
-            baseBreakdown[key] = selectedRates.breakdown[key] * days * travelers;
+        for (let key in selectedRates[budgetLevel].breakdown) {
+            baseBreakdown[key] = selectedRates[budgetLevel].breakdown[key] * days * travelers;
         }
 
         // Apply multiplier to total and breakdown
@@ -91,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="text-center mb-6 animate-fade-in">
                 <h2 class="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-2">$${totalCost.toLocaleString()}</h2>
                 <p class="text-lg text-gray-600">Total Estimated Cost</p>
+                <p class="text-sm text-gray-700 font-medium mt-1">${visitorLabel}</p>
                 <p class="text-sm text-emerald-600 font-medium mt-1">${seasonLabel}</p>
                 ${adjustment > 0 ? `<p class="text-sm text-green-600">Season Adjustment: -$${adjustment.toLocaleString()} (Savings!)</p>` : ''}
             </div>
@@ -122,9 +133,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset
     resetBtn.addEventListener('click', function() {
         form.reset();
+        document.querySelector('input[name="visitorType"][value="international"]').checked = true;
         document.getElementById('travelers').value = 2;
         document.getElementById('days').value = 5;
         document.getElementById('season').value = 'high'; // Default season
+        document.getElementById('budgetLevel').value = 'mid-range'; // Default to mid-range
         resultsDiv.classList.add('hidden', 'scale-95');
         form.scrollIntoView({ behavior: 'smooth' });
     });
