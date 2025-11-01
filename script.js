@@ -19,6 +19,15 @@ const seasons = {
     'low': { multiplier: 0.7, label: 'Low Season (×0.7, 30% off)' }
 };
 
+// Currency rates (USD to target, as of Nov 1, 2025)
+const currencies = {
+    'USD': { rate: 1.00, symbol: '$' },
+    'EUR': { rate: 0.92, symbol: '€' },
+    'GBP': { rate: 0.77, symbol: '£' },
+    'KES': { rate: 128.84, symbol: 'KSh' },
+    'ZAR': { rate: 17.37, symbol: 'R' }
+};
+
 // Breakdown category labels & colors
 const categories = {
     accom: { name: 'Accommodation & Meals', color: 'from-green-500 to-emerald-600' },
@@ -40,8 +49,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const days = parseInt(document.getElementById('days').value);
         const budgetLevel = document.getElementById('budgetLevel').value;
         const season = document.getElementById('season').value || 'high';
+        const currency = document.getElementById('currency').value;
 
-        if (!budgetLevel || travelers < 1 || days < 1) {
+        if (!budgetLevel || travelers < 1 || days < 1 || !currency) {
             alert('Please fill all fields correctly!');
             return;
         }
@@ -56,22 +66,31 @@ document.addEventListener('DOMContentLoaded', function() {
         // Select rates based on visitor type
         const selectedRates = visitorType === 'resident' ? residentRates : internationalRates;
         const seasonMultiplier = seasons[season].multiplier;
+        const currencyInfo = currencies[currency];
         const visitorLabel = visitorType === 'resident' ? 'Local Resident Rates' : 'International Tourist Rates';
 
-        // Base calculations (before multiplier)
-        const baseTotal = selectedRates[budgetLevel].total * days * travelers;
-        const baseBreakdown = {};
+        // Base calculations in USD (before multipliers)
+        const baseTotalUSD = selectedRates[budgetLevel].total * days * travelers;
+        const baseBreakdownUSD = {};
         for (let key in selectedRates[budgetLevel].breakdown) {
-            baseBreakdown[key] = selectedRates[budgetLevel].breakdown[key] * days * travelers;
+            baseBreakdownUSD[key] = selectedRates[budgetLevel].breakdown[key] * days * travelers;
         }
 
-        // Apply multiplier to total and breakdown
-        const totalCost = baseTotal * seasonMultiplier;
-        const adjustment = baseTotal * (1 - seasonMultiplier); // Savings amount
-        const breakdown = {};
-        for (let key in baseBreakdown) {
-            breakdown[key] = baseBreakdown[key] * seasonMultiplier;
+        // Apply season multiplier
+        const seasonAdjustedTotalUSD = baseTotalUSD * seasonMultiplier;
+        const seasonAdjustedBreakdownUSD = {};
+        for (let key in baseBreakdownUSD) {
+            seasonAdjustedBreakdownUSD[key] = baseBreakdownUSD[key] * seasonMultiplier;
         }
+        const adjustmentUSD = baseTotalUSD * (1 - seasonMultiplier); // Savings in USD
+
+        // Convert to selected currency
+        const totalCost = seasonAdjustedTotalUSD * currencyInfo.rate;
+        const breakdown = {};
+        for (let key in seasonAdjustedBreakdownUSD) {
+            breakdown[key] = seasonAdjustedBreakdownUSD[key] * currencyInfo.rate;
+        }
+        const adjustment = adjustmentUSD * currencyInfo.rate; // Savings in selected currency
 
         // Generate enhanced results HTML
         let breakdownHTML = '';
@@ -89,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     <div class="w-24 text-right">
-                        <p class="font-bold text-gray-900">$${breakdown[key].toLocaleString()}</p>
+                        <p class="font-bold text-gray-900">${currencyInfo.symbol}${breakdown[key].toLocaleString()}</p>
                         <p class="text-sm text-gray-500">${percentage}%</p>
                     </div>
                 </div>
@@ -99,11 +118,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const seasonLabel = seasons[season].label;
         const resultsHTML = `
             <div class="text-center mb-6 animate-fade-in">
-                <h2 class="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-2">$${totalCost.toLocaleString()}</h2>
+                <h2 class="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-2">${currencyInfo.symbol}${totalCost.toLocaleString()}</h2>
                 <p class="text-lg text-gray-600">Total Estimated Cost</p>
                 <p class="text-sm text-gray-700 font-medium mt-1">${visitorLabel}</p>
                 <p class="text-sm text-emerald-600 font-medium mt-1">${seasonLabel}</p>
-                ${adjustment > 0 ? `<p class="text-sm text-green-600">Season Adjustment: -$${adjustment.toLocaleString()} (Savings!)</p>` : ''}
+                ${adjustment > 0 ? `<p class="text-sm text-green-600">Season Adjustment: -${currencyInfo.symbol}${adjustment.toLocaleString()} (Savings!)</p>` : ''}
+                <p class="text-xs text-gray-400 mt-2">Rates as of Nov 1, 2025</p>
             </div>
             
             <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Cost Breakdown</h3>
@@ -138,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('days').value = 5;
         document.getElementById('season').value = 'high'; // Default season
         document.getElementById('budgetLevel').value = 'mid-range'; // Default to mid-range
+        document.getElementById('currency').value = 'USD'; // Default currency
         resultsDiv.classList.add('hidden', 'scale-95');
         form.scrollIntoView({ behavior: 'smooth' });
     });
