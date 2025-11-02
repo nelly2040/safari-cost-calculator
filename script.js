@@ -2,14 +2,14 @@
 const internationalRates = {
     'budget': { total: 140, breakdown: { accom: 70, parks: 50, transport: 20 } },
     'mid-range': { total: 300, breakdown: { accom: 180, parks: 70, transport: 50 } },
-    'luxury': { total: 570, breakdown: { accom: 400, parks: 100, transport: 70 } } // Sum of breakdown
+    'luxury': { total: 570, breakdown: { accom: 400, parks: 100, transport: 70 } }
 };
 
 // Local Resident Rates (USD, breakdowns from spec)
 const residentRates = {
     'budget': { total: 70, breakdown: { accom: 40, parks: 15, transport: 15 } },
     'mid-range': { total: 130, breakdown: { accom: 75, parks: 20, transport: 35 } },
-    'luxury': { total: 250, breakdown: { accom: 170, parks: 25, transport: 55 } } // Sum of breakdown
+    'luxury': { total: 250, breakdown: { accom: 170, parks: 25, transport: 55 } }
 };
 
 // Seasonal multipliers
@@ -19,8 +19,8 @@ const seasons = {
     'low': { multiplier: 0.7, label: 'Low Season (×0.7, 30% off)' }
 };
 
-// Currency rates (USD to target, as of Nov 1, 2025)
-const currencies = {
+// Default/fallback currency rates (USD to target, as of Nov 1, 2025)
+const fallbackCurrencies = {
     'USD': { rate: 1.00, symbol: '$' },
     'EUR': { rate: 0.92, symbol: '€' },
     'GBP': { rate: 0.77, symbol: '£' },
@@ -35,11 +35,49 @@ const categories = {
     transport: { name: 'Transport', color: 'from-amber-500 to-orange-600' }
 };
 
+// Cache key for localStorage
+const CACHE_KEY = 'safari_rates_cache';
+const CACHE_DURATION = 3600000; // 1 hour in ms
+
+// Fetch live rates from API
+async function fetchExchangeRates() {
+    // Check cache first
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+            return data;
+        }
+    }
+
+    try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        if (!response.ok) throw new Error('API unavailable');
+        const data = await response.json();
+        const rates = {
+            'USD': { rate: 1.00, symbol: '$' },
+            'EUR': { rate: data.rates.EUR, symbol: '€' },
+            'GBP': { rate: data.rates.GBP, symbol: '£' },
+            'KES': { rate: data.rates.KES, symbol: 'KSh' },
+            'ZAR': { rate: data.rates.ZAR, symbol: 'R' }
+        };
+        // Cache it
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: rates, timestamp: Date.now() }));
+        return rates;
+    } catch (error) {
+        console.warn('API fetch failed, using fallback:', error);
+        alert('Using cached/fallback rates—API temporarily unavailable.');
+        return fallbackCurrencies;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('safariForm');
     const resultsDiv = document.getElementById('results');
     const resetBtn = document.getElementById('resetBtn');
     const calcBtn = document.getElementById('calcBtn');
+
+    let currentRates = fallbackCurrencies; // Default to fallback
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -56,17 +94,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Show loading state
-        calcBtn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>Calculating...';
+        // Fetch live rates (async)
+        calcBtn.innerHTML = '<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>Fetching Rates & Calculating...';
         calcBtn.disabled = true;
 
-        // Simulate quick "processing"
-        await new Promise(resolve => setTimeout(resolve, 800));
+        currentRates = await fetchExchangeRates();
+
+        // Simulate quick "processing" after fetch
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Select rates based on visitor type
         const selectedRates = visitorType === 'resident' ? residentRates : internationalRates;
         const seasonMultiplier = seasons[season].multiplier;
-        const currencyInfo = currencies[currency];
+        const currencyInfo = currentRates[currency];
         const visitorLabel = visitorType === 'resident' ? 'Local Resident Rates' : 'International Tourist Rates';
 
         // Base calculations in USD (before multipliers)
@@ -123,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p class="text-sm text-gray-700 font-medium mt-1">${visitorLabel}</p>
                 <p class="text-sm text-emerald-600 font-medium mt-1">${seasonLabel}</p>
                 ${adjustment > 0 ? `<p class="text-sm text-green-600">Season Adjustment: -${currencyInfo.symbol}${adjustment.toLocaleString()} (Savings!)</p>` : ''}
-                <p class="text-xs text-gray-400 mt-2">Rates as of Nov 1, 2025</p>
+                <p class="text-xs text-gray-400 mt-2">Live rates via ExchangeRate-API</p>
             </div>
             
             <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Cost Breakdown</h3>
@@ -156,10 +196,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('input[name="visitorType"][value="international"]').checked = true;
         document.getElementById('travelers').value = 2;
         document.getElementById('days').value = 5;
-        document.getElementById('season').value = 'high'; // Default season
-        document.getElementById('budgetLevel').value = 'mid-range'; // Default to mid-range
-        document.getElementById('currency').value = 'USD'; // Default currency
+        document.getElementById('season').value = 'high';
+        document.getElementById('budgetLevel').value = 'mid-range';
+        document.getElementById('currency').value = 'USD';
         resultsDiv.classList.add('hidden', 'scale-95');
+        // Clear cache if desired: localStorage.removeItem(CACHE_KEY);
         form.scrollIntoView({ behavior: 'smooth' });
     });
 });
